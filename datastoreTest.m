@@ -10,30 +10,29 @@ clc; clearvars; close all;
 
 dataPath = "D:\Users\Teijo\Documents\MVDIA\MVDIA_CS_2021";
 
-trainDataPath = dataPath + "\CS_train\";
-testDataPath = dataPath + "\CS_test\";
+% trainDataPath = dataPath + "\CS_train\";
+% testDataPath = dataPath + "\CS_test\";
+trainDataPath = dataPath + "\processed_train\";
+testDataPath = dataPath + "\processed_test\";
 
 % creating imagedatastores for training and testing
 imdsTrain = getImds(trainDataPath);
 imdsTest = getImds(testDataPath);
 
-% auImdsTrain = getAugmentedImds(imdsTrain);
-% auImdsTest = getAugmentedImds(imdsTest);
+auImdsTrain = getAugmentedImds(imdsTrain);
+auImdsTest = getAugmentedImds(imdsTest);
+
+%% Testing the transform function, 
+% but the transferdatastore object can't be used for NN training so this is
+% not really a useful section
+
 
 imdsTrainCrop = transform(imdsTrain,@(x) grayThreshCrop(x));
 imdsTestCrop = transform(imdsTest,@(x) grayThreshCrop(x));
 
-
-
-
-
-
-
-
-%%
 figure(1)
 
-im1 = read(imdsTrain);
+im1 = read(auImdsTrain);
 im2 = read(imdsTest);
 
 subplot(221); imshow(im1); axis on; title('Original');
@@ -56,40 +55,48 @@ function imds = getImds(path)
         'IncludeSubfolders',true,...
         'LabelSource', 'foldernames' ...
         );
+
+    % Downsampling to make the classes balanced
+    labelCount = countEachLabel(imds);
+%     imds = splitEachLabel(imds, min(labelCount{:,2}));
     
-    fprintf("%d images with %d classes loaded from %s.\n", ...
+    fprintf("%d images with %d classes loaded from %s. (Average of %d samples per class)\n", ...
         length(imds.Labels), ...
         length(unique(imds.Labels)), ...
-        inputname(1) ...
+        inputname(1), ...
+        round(mean(labelCount{:,2}))...
         );
 
 end
 
 function auimds = getAugmentedImds(imds)
-    imageSize = [227 227 3];
-    %imageSize = [1080 720 3];
-
-    scale = 1;
-
-    %originalImageSize = [3264 2448];
-    %translateYX_ifNoRotation = scale*originalImageSize/2 - originalImageSize/2;
-
-    % It seems that the translation is done before rotation, so the correct
-    % translation amount is difficult to determine so that we stay inside the
-    % picture borders. If we want variable scaling values, the translation task
-    % is even more complex.
-    translateYX = [0 0]; % has to be smaller than [1400 1000] when scale = 3
+    imageSize = [224 224 3];
     
+%     scale = 1;
+%     % It seems that the translation is done before rotation, so the correct
+%     % translation amount is difficult to determine so that we stay inside the
+%     % picture borders. If we want variable scaling values, the translation task
+%     % is even more complex.
+%     translateYX = [0 0]; 
+%     
+%     augmenter = imageDataAugmenter( ...
+%         'RandScale',        [scale, scale], ...
+%         'RandRotation',     [45 45], ...
+%         'RandXTranslation', [1, 1]*translateYX(1), ...
+%         'RandYTranslation', [1, 1]*translateYX(2) ...
+%     );
+
     augmenter = imageDataAugmenter( ...
-        'RandScale',        [scale, scale], ...
-        'RandRotation',     [45 45], ...
-        'RandXTranslation', [1, 1]*translateYX(1), ...
-        'RandYTranslation', [1, 1]*translateYX(2) ...
+        'RandRotation',     [0 0], ...
+        'RandXReflection',    true, ...
+        'RandYReflection',    true ...
     );
 
     %subImds = subset(imdsFull, (1:6)+500);
     auimds = augmentedImageDatastore(imageSize,...
         imds, ...
-        'DispatchInBackground', true);
+        'DataAugmentation',     augmenter, ...
+        'DispatchInBackground', true ...
+    );
 
 end

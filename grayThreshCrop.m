@@ -1,22 +1,43 @@
-function C = grayThreshCrop(I)
+function [C, cropSuccess] = grayThreshCrop(I)
 % Function which returns a cropped image of the input image. Resulting
-% image is grayscale and size of 227x227. 
+% image size is 227x227.
+%
+% C:                    Cropped image
+% cropSuccess:  true if the cropped image is not the same as the original,
+%                         which means that the plankton was probably
+%                         detected correctly 
 % 
 % This function can be used directly as an input to the transform function
-% (to apply transformations on imagedatastore)
+% (to apply transformations on imagedatastore), but the transform function
+% does not seem to work well with neural network training.
 
     newSize = [227 227];
     
+    I = imresize(I, newSize);
+
     if (size(I, 3) > 1 )
-        I = rgb2gray(I);
+        I_gray = rgb2gray(I);
+    else
+        I_gray = I;
     end
 
-    I = imresize(I, newSize);
+
+
     
-    mask = createMask(I);
+    
+    I_gray = imadjust(I_gray);
+%     size(I)
+    
+    mask = createMask(I_gray);
+    
     
     C = cropToMask(I, mask);
+
+    cropSuccess = (size(C, 1) ~= size(I, 1) && size(C, 2) ~= size(I, 2));
+    
+
     C = imresize(C, newSize);
+    
 end
 
 
@@ -31,7 +52,7 @@ function mask = createMask(I)
     mask = ~imbinarize(I,level);
 
     % Removing stray pixels from the binarized mask image
-    mask = imerode(mask, ones(2));
+    mask = imerode(mask, ones(3));
     
 end
 
@@ -63,7 +84,7 @@ function C = cropToMask(I, mask)
     
     C = I( ...
         edges(3) : edges(4), ...
-        edges(1) : edges(2) ...
-        );
+        edges(1) : edges(2), ...
+        : );
 
 end

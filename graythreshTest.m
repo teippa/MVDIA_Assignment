@@ -5,45 +5,61 @@ clc; clearvars; close all;
 % copies of the cropper/pre-processed images if needed. It can be set to
 % loop through all the images in train or test folder.
 
-saveProcessedImages = false;
+saveProcessedImages = true;
 
 dataPath = "D:\Users\Teijo\Documents\MVDIA\MVDIA_CS_2021";
 
 trainDataPath = dataPath + "\CS_train\CS_MVDIA\";
-% testDataPath = dataPath + "\CS_test\CS_MVDIA\";
+testDataPath = dataPath + "\CS_test\CS_MVDIA\";
 
-figure; tiledlayout("flow")
+% resultsFolder = "processed_train";
+resultsFolder = "processed_test";
 
-dirs = dir(trainDataPath);
+figure; tiledlayout("flow");
+
+dirs = dir(testDataPath);
 for currentDir = dirs(3:end)'
     fprintf("Processing %s images...\n", currentDir.name);
     
-    processedPath = fullfile(dataPath, "processed", currentDir.name);
+    processedPath = fullfile(dataPath, resultsFolder, currentDir.name);
     % Create folders for saving the processed images
     if (saveProcessedImages && ~ isfolder(processedPath))   
         mkdir(processedPath);
     end
     
     imageFiles = dir(fullfile(currentDir.folder, currentDir.name, '/*.png'));
+
     
     n = 0;
-    for imageFile = imageFiles(3)'
+    for imageFile = imageFiles'
         if (mod(n,100) == 0)
             fprintf("%d/%d\n",n, length(imageFiles))
+            
         end
+        if (n>=20) 
+            % Setting a limit on how many images are processed. This
+            % prevents some of the classes having too many datapoints in
+            % relation to other classes.
+            % I used 100 for training and 20 for testing
+            break;
+        end
+
         n = n+1;
         
         imPath = fullfile(imageFile.folder, imageFile.name);
         I = imread(imPath);
 
         I_square = imresize(I, [227, 227]);
+%         max(I_square, 'all')
 %         
 %         mask = createMask(I);
 %         
 %         C = cropToMask(I, mask);
 %         C = imresize(C, [227, 227]);
 %         
-        C = grayThreshCrop(I);
+%         I_square = unit8(255* I_square./max(I_square, [], 'all'));
+
+        [C, cropSuccesful] = grayThreshCrop(I);
         
         % Showing the original and cropped images on a grid
         if (n == 1)
@@ -52,62 +68,14 @@ for currentDir = dirs(3:end)'
             title(currentDir.name)
         end
         
-
+        if ~cropSuccesful
+            fprintf("Cropping failed\n");
+            n = n-1;
+        end
         % Saving the cropped image 
-        if (saveProcessedImages)
+        if (saveProcessedImages && cropSuccesful)
             writePath = fullfile(processedPath, imageFile.name);
             imwrite(C, writePath)
         end
     end
 end
-% 
-% 
-% 
-% %%% Functions
-% 
-% function mask = createMask(I)
-% 
-%     % Detect the thresholding value. 100px removed from the top to exclude
-%     % the white scale text from the thresholding calculations
-%     level = graythresh(I(100:end, :));
-%     
-%     % Binarizing the image according to the threshold value
-%     mask = ~imbinarize(I,level);
-% 
-%     % Removing stray pixels from the binarized mask image
-%     mask = imerode(mask, ones(2));
-%     
-% end
-% 
-% function C = cropToMask(I, mask)
-% 
-% % Calculating "side profiles" of the mask
-% a = sum(mask,1);
-% b = sum(mask,2);
-% 
-% padding = 20; % add some space around the detected plankton mask
-% 
-% % Finding the corners of the crop area
-% edges = [
-%     find(a, 1, "first") - padding % left
-%     find(a, 1, "last") + padding  % right
-%     find(b, 1, "first") - padding % top
-%     find(b, 1, "last") + padding  % bottom
-%     ];
-% 
-% % The added padding may make cropping to exceed image borders, this
-% % prevents that
-% for i = 1:4
-%     if (edges(i) > size(I, 1))
-%         edges(i) = size(I, 1);
-%     elseif (edges(i) < 1)
-%         edges(i) = 1;
-%     end
-% end
-% 
-% C = I( ...
-%     edges(3) : edges(4), ...
-%     edges(1) : edges(2) ...
-%     );
-% 
-% end
