@@ -22,9 +22,6 @@ function [C, cropSuccess] = grayThreshCrop(I)
     end
 
 
-
-    
-    
     I_gray = imadjust(I_gray);
 %     size(I)
     

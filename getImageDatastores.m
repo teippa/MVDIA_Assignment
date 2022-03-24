@@ -1,0 +1,53 @@
+function [imds,auImds] = getImageDatastores(path)
+% This function creates imagedatastore and augmented imagedatastore.
+% The variable path points to the root of the image directory. Each class
+% is in it's own folder and the folder name determines the class name.
+    
+    imds = getImds(path);
+    auImds = getAugmentedImds(imds);
+
+end
+
+
+function imds = getImds(path)
+    % Get imagedatastore
+
+    imds = imageDatastore(path,...
+        'IncludeSubfolders',true,...
+        'LabelSource', 'foldernames' ...
+        );
+
+    % Downsampling to make the classes balanced
+    labelCount = countEachLabel(imds);
+%     imds = splitEachLabel(imds, min(labelCount{:,2}));
+    
+    fprintf("%d images with %d classes loaded from %s. (Average of %d samples per class)\n", ...
+        length(imds.Labels), ...
+        length(unique(imds.Labels)), ...
+        inputname(1), ...
+        round(mean(labelCount{:,2}))...
+        );
+
+end
+
+function auimds = getAugmentedImds(imds)
+    imageSize = [224 224 3];
+    
+
+    augmenter = imageDataAugmenter( ...
+        'RandRotation',     @() 90*randi([0 3]), ...
+        'RandXReflection',    true, ...
+        'RandYReflection',    true ...
+    );
+
+    %subImds = subset(imdsFull, (1:6)+500);
+    auimds = augmentedImageDatastore(imageSize,...
+        imds, ...
+        'DataAugmentation',     augmenter, ...
+        'DispatchInBackground', true ...
+    );
+
+end
+
+
+

@@ -1,3 +1,8 @@
+% This script is for training a densenet201.
+% There needs to be some variables in the workspace, so it's recommended to
+% be run from the main.m script
+
+
 %% Net setup (Following MATLAB GoogLeNet example)
 % https://se.mathworks.com/help/releases/R2019b/deeplearning/examples/train-deep-learning-network-to-classify-new-images.html
 
@@ -44,7 +49,7 @@ end
 layers = lgraph.Layers;
 connections = lgraph.Connections;
 
-layers(1:10) = freezeWeights(layers(1:10));
+% layers(1:10) = freezeWeights(layers(1:10));
 lgraph = createLgraphUsingConnections(layers,connections);
 
 fprintf("Network created.\n");
@@ -52,13 +57,13 @@ fprintf("Network created.\n");
 %% Training (Following MATLAB GoogLeNet example)
 
 % How many images are processed on each trainin cycle. Determines how much 
-% memory is used
+% memory is used while training
 miniBatchSize = 20; 
 
 valFrequency = floor(numel(auImdsTrain.Files)/miniBatchSize /2);
 options = trainingOptions('sgdm', ...
     'MiniBatchSize',miniBatchSize, ...
-    'MaxEpochs',6, ... % How many times the whole dataset is processed
+    'MaxEpochs',10, ... % How many times the whole dataset is processed
     'InitialLearnRate',3e-4, ...
     'Shuffle','every-epoch', ...
     'ValidationData',auImdsTest, ...

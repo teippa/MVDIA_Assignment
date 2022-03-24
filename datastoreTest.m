@@ -1,5 +1,10 @@
 clc; clearvars; close all;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THIS SCRIPT IS NOT USED
+% Replaced by getImageDatastores.m & main.m
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Testing how to create and use datastores
 % Augmented datastore does not seem to work with transform function, not
 % sure if it will be a problem
@@ -72,22 +77,9 @@ end
 function auimds = getAugmentedImds(imds)
     imageSize = [224 224 3];
     
-%     scale = 1;
-%     % It seems that the translation is done before rotation, so the correct
-%     % translation amount is difficult to determine so that we stay inside the
-%     % picture borders. If we want variable scaling values, the translation task
-%     % is even more complex.
-%     translateYX = [0 0]; 
-%     
-%     augmenter = imageDataAugmenter( ...
-%         'RandScale',        [scale, scale], ...
-%         'RandRotation',     [45 45], ...
-%         'RandXTranslation', [1, 1]*translateYX(1), ...
-%         'RandYTranslation', [1, 1]*translateYX(2) ...
-%     );
 
     augmenter = imageDataAugmenter( ...
-        'RandRotation',     [0 0], ...
+        'RandRotation',     @() 90*randi([0 3]), ...
         'RandXReflection',    true, ...
         'RandYReflection',    true ...
     );

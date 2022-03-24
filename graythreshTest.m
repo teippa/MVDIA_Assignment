@@ -1,5 +1,10 @@
 clc; clearvars; close all;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THIS SCRIPT IS NOT USED
+% Replaced by preprocess.m & main.m
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % This is for testing the grayThreshCrop.m function. Might be a bit messy
 % code, but I can clean it up later. This script can also be used to save
 % copies of the cropper/pre-processed images if needed. It can be set to
@@ -12,12 +17,12 @@ dataPath = "D:\Users\Teijo\Documents\MVDIA\MVDIA_CS_2021";
 trainDataPath = dataPath + "\CS_train\CS_MVDIA\";
 testDataPath = dataPath + "\CS_test\CS_MVDIA\";
 
-% resultsFolder = "processed_train";
-resultsFolder = "processed_test";
+resultsFolder = "processed_train";
+% resultsFolder = "processed_test";
 
 figure; tiledlayout("flow");
 
-dirs = dir(testDataPath);
+dirs = dir(trainDataPath);
 for currentDir = dirs(3:end)'
     fprintf("Processing %s images...\n", currentDir.name);
     
@@ -36,7 +41,7 @@ for currentDir = dirs(3:end)'
             fprintf("%d/%d\n",n, length(imageFiles))
             
         end
-        if (n>=20) 
+        if (n>=200) 
             % Setting a limit on how many images are processed. This
             % prevents some of the classes having too many datapoints in
             % relation to other classes.
@@ -61,6 +66,12 @@ for currentDir = dirs(3:end)'
 
         [C, cropSuccesful] = grayThreshCrop(I);
         
+        if ~cropSuccesful
+            fprintf("Cropping failed\n");
+            n = n-1;
+            continue
+        end
+
         % Showing the original and cropped images on a grid
         if (n == 1)
             nexttile
@@ -68,14 +79,10 @@ for currentDir = dirs(3:end)'
             title(currentDir.name)
         end
         
-        if ~cropSuccesful
-            fprintf("Cropping failed\n");
-            n = n-1;
-        end
         % Saving the cropped image 
         if (saveProcessedImages && cropSuccesful)
             writePath = fullfile(processedPath, imageFile.name);
-            imwrite(C, writePath)
+            imwrite(histeq(C), writePath)
         end
     end
 end
