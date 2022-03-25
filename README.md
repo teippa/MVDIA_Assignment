@@ -3,14 +3,14 @@
 
 ## DATA
 
--The dataset is not included. The path to the dataset needs to be changed in the code.
--The dataPath variable should point to the root folder of the dataset.
--The preprocessing will create two folders inside the dataset root folder, where the processed images are saved
+- The dataset is not included. The path to the dataset needs to be changed in the code.
+- The dataPath variable should point to the root folder of the dataset.
+- The preprocessing will create two folders inside the dataset root folder, where the processed images are saved
 
 ## EXECUTING THE CODE
 
-Example run of all the functions are in main.m file. 
-densenet_test.m can be run individually to test the pre-trained network.
+- Example run of all the functions are in main.m file. 
+- densenet_test.m can be run individually to test the pre-trained network.
 
 ## NOTES
 
