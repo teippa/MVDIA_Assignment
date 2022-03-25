@@ -22,6 +22,7 @@ function [] = preprocess(dataPath, savePath, maxSamples, excludeFailedCrop)
 failedCrops = 0;
 imagesProcessed = 0;
 
+figure
 dirs = dir(dataPath);
 for currentDir = dirs(3:end)'
     fprintf("Processing %s images...\n", currentDir.name);
@@ -70,7 +71,7 @@ for currentDir = dirs(3:end)'
         if (n == 1)
             nexttile
             imshowpair(I_square, histeq(C), "montage");
-            title(currentDir.name)
+            title(currentDir.name, Interpreter="none")
             sgtitle("Sample of processed images.")
         end
         
